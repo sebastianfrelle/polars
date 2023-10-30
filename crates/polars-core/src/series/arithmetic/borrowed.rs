@@ -1,3 +1,5 @@
+use std::ops::Shl;
+
 use super::*;
 
 pub trait NumOpsDispatchInner: PolarsDataType + Sized {
@@ -450,6 +452,16 @@ impl Add for &Series {
         self.try_add(rhs).unwrap()
     }
 }
+
+impl Shl for &Series {
+    type Output = Series;
+
+    fn shl(self, rhs: Self) -> Self::Output {
+        let (lhs, rhs) = coerce_lhs_rhs(self, rhs).expect("cannot coerce datatypes");
+        lhs.shl_by(rhs.as_ref()).expect("data types don't match")
+    }
+}
+
 
 impl Mul for &Series {
     type Output = Series;

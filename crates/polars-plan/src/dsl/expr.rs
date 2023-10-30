@@ -296,6 +296,8 @@ pub enum Operator {
     And,
     Or,
     Xor,
+    LShift,
+    // RShift,
 }
 
 impl Display for Operator {
@@ -320,6 +322,8 @@ impl Display for Operator {
             And => "&",
             Or => "|",
             Xor => "^",
+            LShift => "<<",
+            // RShift => ">>",
         };
         write!(f, "{tkn}")
     }

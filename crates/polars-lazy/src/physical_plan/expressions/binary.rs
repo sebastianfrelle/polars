@@ -77,6 +77,8 @@ pub fn apply_operator(left: &Series, right: &Series, op: Operator) -> PolarsResu
         Operator::And => left.bitand(right),
         Operator::Or => left.bitor(right),
         Operator::Xor => left.bitxor(right),
+        Operator::LShift => Ok(left << right),
+        // Operator::RShift => Ok(left >> right),
         Operator::Modulus => Ok(left % right),
         Operator::EqValidity => left.equal_missing(right).map(|ca| ca.into_series()),
         Operator::NotEqValidity => left.not_equal_missing(right).map(|ca| ca.into_series()),

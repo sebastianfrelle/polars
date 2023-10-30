@@ -294,6 +294,22 @@ where
     None
 }
 
+// TODO: write a macro to implement this for all numeric types
+fn eval_bitshift<F>(left: &AExpr, right: &AExpr, operation: F) -> Option<AExpr>
+where
+    F: Fn(u64, u8) -> u64,
+{
+    if let (AExpr::Literal(lit_left), AExpr::Literal(lit_right)) = (left, right) {
+        return match (lit_left, lit_right) {
+           (LiteralValue::UInt64(x), LiteralValue::UInt8(y)) => {
+            Some(AExpr::Literal(LiteralValue::UInt64(operation(*x, *y))))
+           },
+           _ => None,
+        };
+    }
+    None
+}
+
 #[cfg(all(feature = "strings", feature = "concat_str"))]
 fn string_addition_to_linear_concat(
     lp_arena: &Arena<ALogicalPlan>,
@@ -541,6 +557,8 @@ impl OptimizationRule for SimplifyExprRule {
                     Or => eval_bitwise(left_aexpr, right_aexpr, |l, r| l | r),
                     Xor => eval_bitwise(left_aexpr, right_aexpr, |l, r| l ^ r),
                     FloorDivide => None,
+                    LShift => eval_bitshift(left_aexpr, right_aexpr, |l, r| l << r),
+                    RShift => eval_bitshift(left_aexpr, right_aexpr, |l, r| l >> r),
                 };
                 if out.is_some() {
                     return Ok(out);

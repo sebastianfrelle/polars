@@ -44,6 +44,12 @@ impl PyExpr {
     fn __floordiv__(&self, rhs: Self) -> PyResult<Self> {
         Ok(dsl::binary_expr(self.inner.clone(), Operator::FloorDivide, rhs.inner).into())
     }
+    fn __lshift__(&self, rhs: Self) -> PyResult<Self> {
+        Ok(dsl::binary_expr(self.inner.clone(), Operator::LShift, rhs.inner).into())
+    }
+    // fn __rshift__(&self, rhs: Self) -> PyResult<Self> {
+    //     Ok(dsl::binary_expr(self.inner.clone(), Operator::RShift, rhs.inner).into())
+    // }
 
     fn to_str(&self) -> String {
         format!("{:?}", self.inner)

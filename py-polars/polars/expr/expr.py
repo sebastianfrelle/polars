@@ -242,6 +242,18 @@ class Expr:
     def __rxor__(self, other: Any) -> Self:
         return self._from_pyexpr(self._to_pyexpr(other)._xor(self._pyexpr))
 
+    def __lshift__(self, other: Any ) -> Self:
+        return self._from_pyexpr(self._pyexpr << self._to_pyexpr(other))
+
+    def __rlshift__(self, other: Any) -> Self:
+        return self._from_pyexpr(self._to_pyexpr(other) << self._pyexpr)
+
+    def __rshift__(self, other: Any) -> Self:
+        return self._from_pyexpr(self._pyexpr >> self._to_pyexpr(other))
+
+    def __rrshift__(self, other: Any) -> Self:
+        return self._from_pyexpr(self._to_pyexpr(other) >> self._pyexpr)
+
     def __getstate__(self) -> bytes:
         return self._pyexpr.__getstate__()
 
