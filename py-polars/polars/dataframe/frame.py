@@ -1488,6 +1488,8 @@ class DataFrame:
         other = _prepare_other_arg(other)
         return self._from_pydf(self._df.add(other._s))
 
+    # TODO: add lshift, rlshift, rshift, rrshift
+
     def __radd__(  # type: ignore[misc]
         self, other: DataFrame | Series | int | float | bool | str
     ) -> DataFrame:

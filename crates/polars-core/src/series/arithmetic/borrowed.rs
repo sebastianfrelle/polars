@@ -1,4 +1,4 @@
-use std::ops::Shl;
+use num_traits::{NumOps, CheckedShl};
 
 use super::*;
 
@@ -18,6 +18,9 @@ pub trait NumOpsDispatchInner: PolarsDataType + Sized {
     fn remainder(lhs: &ChunkedArray<Self>, rhs: &Series) -> PolarsResult<Series> {
         polars_bail!(opq = rem, lhs.dtype(), rhs.dtype());
     }
+    fn shl_by(lhs: &ChunkedArray<Self>, rhs: &Series) -> PolarsResult<Series> {
+        polars_bail!(opq = shl, lhs.dtype(), rhs.dtype())
+    }
 }
 
 pub trait NumOpsDispatch {
@@ -26,6 +29,7 @@ pub trait NumOpsDispatch {
     fn multiply(&self, rhs: &Series) -> PolarsResult<Series>;
     fn divide(&self, rhs: &Series) -> PolarsResult<Series>;
     fn remainder(&self, rhs: &Series) -> PolarsResult<Series>;
+    fn shl_by(&self, rhs: &Series) -> PolarsResult<Series>;
 }
 
 impl<T: NumOpsDispatchInner> NumOpsDispatch for ChunkedArray<T> {
@@ -43,6 +47,9 @@ impl<T: NumOpsDispatchInner> NumOpsDispatch for ChunkedArray<T> {
     }
     fn remainder(&self, rhs: &Series) -> PolarsResult<Series> {
         T::remainder(self, rhs)
+    }
+    fn shl_by(&self, rhs: &Series) -> PolarsResult<Series> {
+        T::shl_by(self, rhs)
     }
 }
 
@@ -90,6 +97,27 @@ where
         Ok(out.into_series())
     }
 }
+
+// impl NumOpsDispatchInner for Int64Type {
+//     fn shl_by(lhs: &ChunkedArray<Self>, rhs: &Series) -> PolarsResult<Series> {
+//         let rhs = unsafe { lhs.unpack_series_matching_physical_type(rhs) };
+//         let out = lhs << rhs;
+//         Ok(out.into_series())
+//     }
+// }
+
+// impl<T> NumOpsDispatchInner for T
+// where
+//     T: PolarsIntegerType,
+//     T::Native: Shl<Output = T::Native>,
+//     ChunkedArray<T>: IntoSeries,
+// {
+//     fn shl_by(lhs: &ChunkedArray<Self>, rhs: &Series) -> PolarsResult<Series> {
+//         let rhs = unsafe { lhs.unpack_series_matching_physical_type(rhs) };
+//         let out = lhs << rhs;
+//         Ok(out.into_series())
+//     }
+// }
 
 impl NumOpsDispatchInner for Utf8Type {
     fn add_to(lhs: &Utf8Chunked, rhs: &Series) -> PolarsResult<Series> {
@@ -457,11 +485,11 @@ impl Shl for &Series {
     type Output = Series;
 
     fn shl(self, rhs: Self) -> Self::Output {
+        // TODO: struct arithmetic?
         let (lhs, rhs) = coerce_lhs_rhs(self, rhs).expect("cannot coerce datatypes");
         lhs.shl_by(rhs.as_ref()).expect("data types don't match")
     }
 }
-
 
 impl Mul for &Series {
     type Output = Series;
@@ -575,6 +603,17 @@ where
     }
 }
 
+impl<T> Shl<T> for Series
+where
+    T: Num + NumCast + Shl,
+{
+    type Output = Self;
+
+    fn shl(self, rhs: T) -> Self::Output {
+        (&self).shl(rhs)
+    }
+}
+
 impl<T> Add<T> for &Series
 where
     T: Num + NumCast,
@@ -589,6 +628,24 @@ where
             }};
         }
         let out = downcast_as_macro_arg_physical!(s, add);
+        finish_cast(self, out)
+    }
+}
+
+impl<T> Shl<T> for &Series
+where
+    T: Num + NumCast,
+{
+    type Output = Series;
+
+    fn shl(self, rhs: T) -> Self::Output {
+        let s = self.to_physical_repr();
+        macro_rules! shl {
+            ($ca:expr) => {{
+                $ca.shl(rhs).into_series()
+            }};
+        }
+        let out = downcast_as_macro_arg_physical_shl!(s, shl);
         finish_cast(self, out)
     }
 }
@@ -720,7 +777,32 @@ where
         let lhs: T::Native = NumCast::from(lhs).expect("could not cast");
         self.apply_values(|v| lhs % v)
     }
+
 }
+
+impl<T> ChunkedArray<T>
+where
+    T: PolarsNumericType,
+    T::Native: Shl<Output = T::Native>,
+    ChunkedArray<T>: IntoSeries,
+{
+    #[must_use]
+    pub fn lhs_shl<N: Num + NumCast>(&self, lhs: N) -> Self {
+        let lhs: T::Native = NumCast::from(lhs).expect("could not cast");
+        self.apply_values(|v| lhs << v)
+    }
+}
+
+// impl<T: PolarsIntegerType> ChunkedArray<T>
+// where
+//     ChunkedArray<T>: IntoSeries,
+// {
+//     #[must_use]
+//     pub fn lhs_shl<N: Num + NumCast>(&self, lhs: N) -> Self {
+//         let lhs: T::Native = NumCast::from(lhs).expect("could not cast");
+//         self.apply_values(|v| lhs << v)
+//     }
+// }
 
 pub trait LhsNumOps {
     type Output;
@@ -730,6 +812,7 @@ pub trait LhsNumOps {
     fn div(self, rhs: &Series) -> Self::Output;
     fn mul(self, rhs: &Series) -> Self::Output;
     fn rem(self, rem: &Series) -> Self::Output;
+    fn shl(self, rhs: &Series) -> Self::Output;
 }
 
 impl<T> LhsNumOps for T
@@ -777,6 +860,19 @@ where
         }
 
         let out = downcast_as_macro_arg_physical!(s, rem);
+
+        finish_cast(rhs, out)
+    }
+
+    fn shl(self, rhs: &Series) -> Self::Output {
+        let s = rhs.to_physical_repr();
+        macro_rules! shl {
+            ($rhs:expr) => {{
+                $rhs.lhs_shl(self).into_series()
+            }};
+        }
+
+        let out = downcast_as_macro_arg_physical_shl!(s, shl);
 
         finish_cast(rhs, out)
     }

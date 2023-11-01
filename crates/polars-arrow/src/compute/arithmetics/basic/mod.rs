@@ -39,6 +39,16 @@ impl NativeArithmetics for i64 {}
 impl NativeArithmetics for f32 {}
 impl NativeArithmetics for f64 {}
 
+pub trait NativeBitwise: NativeType {}
+impl NativeBitwise for u8 {}
+impl NativeBitwise for u16 {}
+impl NativeBitwise for u32 {}
+impl NativeBitwise for u64 {}
+impl NativeBitwise for i8 {}
+impl NativeBitwise for i16 {}
+impl NativeBitwise for i32 {}
+impl NativeBitwise for i64 {}
+
 /// Negates values from array.
 ///
 /// # Examples

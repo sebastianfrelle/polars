@@ -297,12 +297,12 @@ where
 // TODO: write a macro to implement this for all numeric types
 fn eval_bitshift<F>(left: &AExpr, right: &AExpr, operation: F) -> Option<AExpr>
 where
-    F: Fn(u64, u8) -> u64,
+    F: Fn(i64, i64) -> i64,
 {
     if let (AExpr::Literal(lit_left), AExpr::Literal(lit_right)) = (left, right) {
         return match (lit_left, lit_right) {
-           (LiteralValue::UInt64(x), LiteralValue::UInt8(y)) => {
-            Some(AExpr::Literal(LiteralValue::UInt64(operation(*x, *y))))
+           (LiteralValue::Int64(x), LiteralValue::Int64(y)) => {
+            Some(AExpr::Literal(LiteralValue::Int64(operation(*x, *y))))
            },
            _ => None,
         };
@@ -558,7 +558,7 @@ impl OptimizationRule for SimplifyExprRule {
                     Xor => eval_bitwise(left_aexpr, right_aexpr, |l, r| l ^ r),
                     FloorDivide => None,
                     LShift => eval_bitshift(left_aexpr, right_aexpr, |l, r| l << r),
-                    RShift => eval_bitshift(left_aexpr, right_aexpr, |l, r| l >> r),
+                    // RShift => eval_bitshift(left_aexpr, right_aexpr, |l, r| l >> r),
                 };
                 if out.is_some() {
                     return Ok(out);

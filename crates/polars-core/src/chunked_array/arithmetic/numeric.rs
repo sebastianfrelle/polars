@@ -259,6 +259,22 @@ where
     }
 }
 
+impl<T, N> Shl<N> for &ChunkedArray<T>
+where
+    T: PolarsNumericType,
+    N: Num + ToPrimitive,
+    T::Native: Shl<Output = T::Native>,
+{
+    type Output = ChunkedArray<T>;
+
+    fn shl(self, rhs: N) -> Self::Output {
+        let shifter: T::Native = NumCast::from(rhs).unwrap();
+        let mut out = self.apply_values(|val| val << shifter);
+        out.set_sorted_flag(self.is_sorted_flag());
+        out
+    }
+}
+
 impl<T, N> Sub<N> for &ChunkedArray<T>
 where
     T: PolarsNumericType,
@@ -335,6 +351,18 @@ where
         (&self).add(rhs)
     }
 }
+
+// impl<T, N> Shl<N> for ChunkedArray<T>
+// where
+//     T: PolarsIntegerType,
+//     N: Num + ToPrimitive,
+// {
+//     type Output = ChunkedArray<T>;
+
+//     fn shl(self, rhs: N) -> Self::Output {
+//         (&self).shl(rhs)
+//     }
+// }
 
 impl<T, N> Sub<N> for ChunkedArray<T>
 where

@@ -3,11 +3,12 @@
 mod decimal;
 mod numeric;
 
-use std::ops::{Add, Div, Mul, Rem, Sub};
+use std::ops::{Add, Div, Mul, Rem, Sub, Shl};
 
 use arrow::array::PrimitiveArray;
 use arrow::compute::arithmetics::basic;
 use arrow::compute::arity_assign;
+use arrow::compute::bitwise;
 use arrow::legacy::utils::combine_validities_and;
 use arrow::types::NativeType;
 use num_traits::{Num, NumCast, ToPrimitive, Zero};
@@ -29,6 +30,33 @@ where
     fn rem(lhs: &PrimitiveArray<Self>, rhs: &PrimitiveArray<Self>) -> PrimitiveArray<Self>;
     fn rem_scalar(lhs: &PrimitiveArray<Self>, rhs: &Self) -> PrimitiveArray<Self>;
 }
+
+pub trait ArrayBitwise
+where
+Self: NativeType,
+{
+    fn shl(lhs: &PrimitiveArray<Self>, rhs: &PrimitiveArray<Self>) -> PrimitiveArray<Self>;
+    fn shl_scalar(lhs: &PrimitiveArray<Self>, rhs: &Self) -> PrimitiveArray<Self>;
+}
+
+macro_rules! native_array_bitwise {
+    ($ty: ty) => {
+        impl ArrayBitwise for $ty
+        {
+            fn shl(lhs: &PrimitiveArray<Self>, rhs: &PrimitiveArray<Self>) -> PrimitiveArray<Self> {
+                bitwise::shl(lhs, rhs)
+            }
+            fn shl_scalar(lhs: &PrimitiveArray<Self>, rhs: &Self) -> PrimitiveArray<Self> {
+                bitwise::shl_scalar(lhs, rhs)
+            }
+        }
+    };
+    ($($ty:ty),*) => {
+        $(native_array_bitwise!($ty);)*
+    }
+}
+
+native_array_bitwise!(u8, u16, u32, u64, i8, i16, i32, i64);
 
 macro_rules! native_array_arithmetics {
     ($ty: ty) => {

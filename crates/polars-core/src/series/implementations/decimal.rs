@@ -103,6 +103,9 @@ impl private::PrivateSeries for SeriesWrap<DecimalChunked> {
         let rhs = rhs.decimal()?;
         ((&self.0) / rhs).map(|ca| ca.into_series())
     }
+    fn shl_by(&self, rhs: &Series) -> PolarsResult<Series> {
+        todo!()
+    }
 }
 
 impl SeriesTrait for SeriesWrap<DecimalChunked> {

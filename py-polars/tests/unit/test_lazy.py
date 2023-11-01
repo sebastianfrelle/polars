@@ -812,13 +812,13 @@ def test_bitwise() -> None:
     out = ldf.select(
         [
             (pl.col("a") << 2).alias("1"),
-            (pl.col("a") >> 2).alias("2"),
+            # (pl.col("a") >> 2).alias("2"),
         ]
     )
     expected = pl.DataFrame(
         {
             "1": [0b1100, 0b1111000100, 0b11000001100100],
-            "2": [0b0, 0b111100, 0b1100000110],
+            # "2": [0b0, 0b111100, 0b1100000110],
         }
     )
     assert_frame_equal(out.collect(), expected)

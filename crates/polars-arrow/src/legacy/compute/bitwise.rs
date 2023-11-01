@@ -1,4 +1,4 @@
-use std::ops::{BitAnd, BitOr, BitXor};
+use std::ops::{BitAnd, BitOr, BitXor, Shl};
 
 use crate::array::PrimitiveArray;
 use crate::compute::arity::binary;
@@ -23,4 +23,11 @@ where
     T: BitXor<T, Output = T>,
 {
     binary(a, b, a.data_type().clone(), |a, b| a.bitxor(b))
+}
+
+pub fn shl<T: NativeType>(a: &PrimitiveArray<T>, b: &PrimitiveArray<T>) -> PrimitiveArray<T>
+where
+    T: Shl<T, Output = T>,
+{
+    binary(a, b, a.data_type().clone(), |a, b| a << b)
 }

@@ -2,7 +2,7 @@ mod borrowed;
 mod owned;
 
 use std::borrow::Cow;
-use std::ops::{Add, Div, Mul, Rem, Sub};
+use std::ops::{Add, Div, Mul, Rem, Sub, Shl, Shr};
 
 pub use borrowed::*;
 use num_traits::{Num, NumCast};

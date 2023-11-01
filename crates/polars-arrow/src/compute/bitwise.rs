@@ -1,9 +1,11 @@
 //! Contains bitwise operators: [`or`], [`and`], [`xor`] and [`not`].
-use std::ops::{BitAnd, BitOr, BitXor, Not};
+use std::ops::{BitAnd, BitOr, BitXor, Not, Shl};
 
 use crate::array::PrimitiveArray;
 use crate::compute::arity::{binary, unary};
 use crate::types::NativeType;
+
+use super::arithmetics::basic::NativeBitwise;
 
 /// Performs `OR` operation on two [`PrimitiveArray`]s.
 /// # Panic
@@ -72,4 +74,17 @@ where
     T: NativeType + BitAnd<Output = T>,
 {
     unary(lhs, |a| a & *rhs, lhs.data_type().clone())
+}
+
+pub fn shl<T>(lhs: &PrimitiveArray<T>, rhs: &PrimitiveArray<T>) -> PrimitiveArray<T>
+where
+    T: NativeBitwise + Shl<Output = T>,
+{
+    binary(lhs, rhs, lhs.data_type().clone(), |a, b| a << b)
+}
+
+pub fn shl_scalar<T>(lhs: &PrimitiveArray<T>, rhs: &T) -> PrimitiveArray<T>
+where T: NativeBitwise + Shl<Output = T>,
+{
+    unary(lhs,  |a| a << *rhs,  lhs.data_type().clone())
 }

@@ -19,7 +19,7 @@ mod time_unit;
 use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
-use std::ops::{Add, AddAssign, Div, Mul, Rem, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, Mul, Rem, Sub, SubAssign, Shl};
 
 pub use aliases::*;
 pub use any_value::*;
@@ -45,7 +45,7 @@ pub use static_array::StaticArray;
 pub use static_array_collect::{ArrayCollectIterExt, ArrayFromIter, ArrayFromIterDtype};
 pub use time_unit::*;
 
-use crate::chunked_array::arithmetic::ArrayArithmetics;
+use crate::chunked_array::arithmetic::{ArrayArithmetics, ArrayBitwise};
 pub use crate::chunked_array::logical::*;
 #[cfg(feature = "object")]
 use crate::chunked_array::object::ObjectArray;
@@ -85,6 +85,10 @@ where
 {
     type Native: NumericNative;
 }
+
+// pub trait PolarsShifterType: PolarsNumericType {
+//     type Native: NumericNative + Shifter;
+// }
 
 pub trait PolarsIntegerType: PolarsNumericType {}
 pub trait PolarsFloatType: PolarsNumericType {}
@@ -264,6 +268,35 @@ pub trait NumericNative:
     type PolarsType: PolarsNumericType;
 }
 
+pub trait IntegerNative:
+    TotalOrd
+    + PartialOrd
+    + NativeType
+    + Num
+    + NumCast
+    + Zero
+    + One
+    + Simd
+    + Simd8
+    + std::iter::Sum<Self>
+    + Add<Output = Self>
+    + Sub<Output = Self>
+    + Mul<Output = Self>
+    + Div<Output = Self>
+    + Rem<Output = Self>
+    + Shl<Output = Self>
+    + AddAssign
+    + SubAssign
+    + AbsDiff
+    + Bounded
+    + FromPrimitive
+    + IsFloat
+    + ArrayArithmetics
+    + ArrayBitwise
+{
+    type PolarsType: PolarsIntegerType;
+}
+
 impl NumericNative for i8 {
     type PolarsType = Int8Type;
 }
@@ -297,4 +330,33 @@ impl NumericNative for f32 {
 }
 impl NumericNative for f64 {
     type PolarsType = Float64Type;
+}
+
+impl IntegerNative for i8 {
+    type PolarsType = Int8Type;
+}
+impl IntegerNative for i16 {
+    type PolarsType = Int16Type;
+}
+impl IntegerNative for i32 {
+    type PolarsType = Int32Type;
+}
+impl IntegerNative for i64 {
+    type PolarsType = Int64Type;
+}
+impl IntegerNative for u8 {
+    type PolarsType = UInt8Type;
+}
+impl IntegerNative for u16 {
+    type PolarsType = UInt16Type;
+}
+impl IntegerNative for u32 {
+    type PolarsType = UInt32Type;
+}
+impl IntegerNative for u64 {
+    type PolarsType = UInt64Type;
+}
+#[cfg(feature = "dtype-decimal")]
+impl IntegerNative for i128 {
+    type PolarsType = Int128Type;
 }

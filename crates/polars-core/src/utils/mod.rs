@@ -423,6 +423,27 @@ macro_rules! downcast_as_macro_arg_physical {
     }};
 }
 
+#[macro_export]
+macro_rules! downcast_as_macro_arg_physical_shl {
+    ($self:expr, $macro:ident $(, $opt_args:expr)*) => {{
+        match $self.dtype() {
+            #[cfg(feature = "dtype-u8")]
+            DataType::UInt8 => $macro!($self.u8().unwrap() $(, $opt_args)*),
+            #[cfg(feature = "dtype-u16")]
+            DataType::UInt16 => $macro!($self.u16().unwrap() $(, $opt_args)*),
+            DataType::UInt32 => $macro!($self.u32().unwrap() $(, $opt_args)*),
+            DataType::UInt64 => $macro!($self.u64().unwrap() $(, $opt_args)*),
+            #[cfg(feature = "dtype-i8")]
+            DataType::Int8 => $macro!($self.i8().unwrap() $(, $opt_args)*),
+            #[cfg(feature = "dtype-i16")]
+            DataType::Int16 => $macro!($self.i16().unwrap() $(, $opt_args)*),
+            DataType::Int32 => $macro!($self.i32().unwrap() $(, $opt_args)*),
+            DataType::Int64 => $macro!($self.i64().unwrap() $(, $opt_args)*),
+            dt => panic!("not implemented for {:?}", dt),
+        }
+    }};
+}
+
 /// Apply a macro on the Downcasted ChunkedArray's of DataTypes that are logical numerics.
 /// So no logical.
 #[macro_export]

@@ -1,4 +1,4 @@
-use std::ops::{BitAnd, BitOr, BitXor, Not};
+use std::ops::{BitAnd, BitOr, BitXor, Not, Shl};
 
 use arrow::compute;
 use arrow::legacy::compute::bitwise;
@@ -16,6 +16,18 @@ where
 
     fn bitand(self, rhs: Self) -> Self::Output {
         arithmetic_helper(self, rhs, bitwise::bitand, |a, b| a.bitand(b))
+    }
+}
+
+impl<T> Shl for &ChunkedArray<T>
+where
+    T: PolarsIntegerType,
+    T::Native: Shl<Output = T::Native>,
+{
+    type Output = ChunkedArray<T>;
+
+    fn shl(self, rhs: Self) -> Self::Output {
+        arithmetic_helper(self, rhs, bitwise::shl, |a, b| a << b)
     }
 }
 

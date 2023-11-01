@@ -193,6 +193,9 @@ macro_rules! impl_dyn_series {
             fn remainder(&self, rhs: &Series) -> PolarsResult<Series> {
                 NumOpsDispatch::remainder(&self.0, rhs)
             }
+            fn shl_by(&self, rhs: &Series) -> PolarsResult<Series> {
+                NumOpsDispatch::shl_by(&self.0, rhs)
+            }
             #[cfg(feature = "algorithm_group_by")]
             fn group_tuples(&self, multithreaded: bool, sorted: bool) -> PolarsResult<GroupsProxy> {
                 IntoGroupsProxy::group_tuples(&self.0, multithreaded, sorted)

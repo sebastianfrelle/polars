@@ -778,6 +778,28 @@ class Series:
             return F.lit(self) + other
         return self._arithmetic(other, "add", "add_<>")
 
+    
+    @overload
+    def __lshift__(self, other: DataFrame) -> DataFrame:  # type: ignore[misc]
+        ...
+
+    @overload
+    def __lshift__(self, other: Expr) -> Expr:  # type: ignore[misc]
+        ...
+
+    @overload
+    def __lshift__(self, other: Any) -> Self:
+        ...
+
+    def __lshift__(self, other: Any) -> Self | DataFrame | Expr:
+        if isinstance(other, str):
+            other = Series("", [other])
+        elif isinstance(other, pl.DataFrame):
+            return other + self
+        elif isinstance(other, pl.Expr):
+            return F.lit(self) + other
+        return self._arithmetic(other, "shl", "shl_<>")
+
     @overload
     def __sub__(self, other: Expr) -> Expr:  # type: ignore[misc]
         ...

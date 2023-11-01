@@ -35,6 +35,14 @@ use crate::prelude::{dicts_to_rows, strings_to_smartstrings};
 use crate::series::{PySeries, ToPySeries, ToSeries};
 use crate::{arrow_interop, py_modules, PyExpr, PyLazyFrame};
 
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+
+    }
+}
+
 #[pyclass]
 #[repr(transparent)]
 #[derive(Clone)]

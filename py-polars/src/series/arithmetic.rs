@@ -25,6 +25,9 @@ impl PySeries {
     fn rem(&self, other: &PySeries) -> Self {
         (&self.series % &other.series).into()
     }
+    fn shl(&self, other: &PySeries) -> Self {
+        (&self.series << &other.series).into()
+    }
 }
 
 macro_rules! impl_arithmetic {
@@ -92,6 +95,7 @@ impl_arithmetic!(rem_i32, i32, %);
 impl_arithmetic!(rem_i64, i64, %);
 impl_arithmetic!(rem_f32, f32, %);
 impl_arithmetic!(rem_f64, f64, %);
+impl_arithmetic!(shl_i64, i64, <<);
 
 macro_rules! impl_rhs_arithmetic {
     ($name:ident, $type:ty, $operand:ident) => {
@@ -154,3 +158,4 @@ impl_rhs_arithmetic!(rem_i32_rhs, i32, rem);
 impl_rhs_arithmetic!(rem_i64_rhs, i64, rem);
 impl_rhs_arithmetic!(rem_f32_rhs, f32, rem);
 impl_rhs_arithmetic!(rem_f64_rhs, f64, rem);
+impl_rhs_arithmetic!(shl_u64_rhs, u64, shl);

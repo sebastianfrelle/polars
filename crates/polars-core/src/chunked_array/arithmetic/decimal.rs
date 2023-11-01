@@ -35,6 +35,16 @@ impl ArrayArithmetics for i128 {
     }
 }
 
+impl ArrayBitwise for i128 {
+    fn shl(lhs: &PrimitiveArray<Self>, rhs: &PrimitiveArray<Self>) -> PrimitiveArray<Self> {
+        todo!()
+    }
+
+    fn shl_scalar(lhs: &PrimitiveArray<Self>, rhs: &Self) -> PrimitiveArray<Self> {
+        todo!()
+    }
+}
+
 impl DecimalChunked {
     fn arithmetic_helper<Kernel, ScalarKernelLhs, ScalarKernelRhs>(
         &self,
